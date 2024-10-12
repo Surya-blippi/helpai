@@ -35,10 +35,10 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-white notebook-background">
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
-          <h1 className="text-3xl mb-6 text-gray-800 font-bold text-center">DoubtSolve</h1>
-          <div className="mb-6">
+          <h1 className="text-3xl mb-8 text-gray-800 font-bold text-center">DoubtSolve</h1>
+          <div className="mb-8">
             <QuestionInput 
               question={question} 
               setQuestion={setQuestion} 
@@ -46,12 +46,14 @@ export default function Homepage() {
               setImage={setImage} 
             />
           </div>
-          <button 
-            onClick={handleSolve}
-            className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition-colors shadow-lg"
-          >
-            Solve
-          </button>
+          <div className="flex justify-center">
+            <button 
+              onClick={handleSolve}
+              className="bg-black text-white px-8 py-2 rounded-full text-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg"
+            >
+              Solve
+            </button>
+          </div>
         </main>
       </div>
       <style jsx global>{`

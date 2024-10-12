@@ -49,7 +49,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className="relative w-full">
       {showCamera ? (
         <div className="relative">
           <Webcam
@@ -61,21 +61,19 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
           <button
             type="button"
             onClick={handleCameraCapture}
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
           >
             Capture
           </button>
         </div>
       ) : (
-        <div className="border-b-2 border-gray-300 pb-2 flex items-center">
+        <div className="border-2 border-gray-300 rounded-lg p-4 min-h-[200px] flex flex-col">
           {image || previewUrl ? (
-            <div className="relative w-full">
+            <div className="relative w-full h-full">
               <Image 
                 src={previewUrl!} 
                 alt="Uploaded question" 
-                width={300} 
-                height={200} 
-                layout="responsive" 
+                layout="fill"
                 objectFit="contain"
                 className="rounded-lg"
               />
@@ -89,34 +87,36 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
             </div>
           ) : (
             <>
-              <input
-                type="text"
+              <textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                className="flex-grow focus:outline-none bg-transparent text-lg"
+                className="flex-grow focus:outline-none bg-transparent text-lg resize-none"
                 placeholder="Type your question here..."
+                rows={5}
               />
-              <button
-                type="button"
-                onClick={() => setShowCamera(true)}
-                className="ml-2 text-gray-500 hover:text-gray-700"
-              >
-                <CameraIcon className="h-6 w-6" />
-              </button>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="ml-2 text-gray-500 hover:text-gray-700"
-              >
-                <PhotoIcon className="h-6 w-6" />
-              </button>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                ref={fileInputRef}
-                className="hidden"
-              />
+              <div className="flex justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  className="mr-2 text-gray-500 hover:text-gray-700"
+                >
+                  <CameraIcon className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <PhotoIcon className="h-6 w-6" />
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  ref={fileInputRef}
+                  className="hidden"
+                />
+              </div>
             </>
           )}
         </div>
