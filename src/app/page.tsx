@@ -4,8 +4,8 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-white relative overflow-hidden graph-paper">
       {/* Background squares */}
-      <div className="absolute inset-0 grid grid-cols-5 grid-rows-6 gap-0">
-        {[...Array(30)].map((_, i) => (
+      <div className="absolute inset-0 grid grid-cols-10 grid-rows-12 gap-0">
+        {[...Array(120)].map((_, i) => (
           <div key={i} className="border border-gray-200">
             <div className="w-full h-full bg-gray-100"></div>
           </div>
