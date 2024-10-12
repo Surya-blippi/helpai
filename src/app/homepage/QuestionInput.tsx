@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface QuestionInputProps {
   question: string;
@@ -10,10 +10,14 @@ interface QuestionInputProps {
 
 const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, onSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+      const file = e.target.files[0];
+      setImage(file);
+      setQuestion('');
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -26,30 +30,53 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         console.log('Camera stream:', stream);
         // Don't forget to stop the stream when done
         stream.getTracks().forEach(track => track.stop());
+        // For demonstration, let's pretend we captured an image
+        const mockFile = new File([""], "camera_capture.jpg", { type: "image/jpeg" });
+        setImage(mockFile);
+        setQuestion('');
+        setPreviewUrl(URL.createObjectURL(mockFile));
       } catch (err) {
         console.error("Error accessing camera:", err);
       }
     }
   };
 
+  const clearInput = () => {
+    setQuestion('');
+    setImage(null);
+    setPreviewUrl(null);
+  };
+
   return (
     <form onSubmit={onSubmit} className="w-full max-w-lg">
-      <div className="mb-4">
-        <label htmlFor="question" className="block text-gray-700 text-sm font-bold mb-2">
-          Enter your math or science question:
+      <div className="mb-4 relative">
+        <label htmlFor="input" className="block text-gray-700 text-sm font-bold mb-2">
+          Enter your math or science question or upload an image:
         </label>
-        <textarea
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          rows={4}
-        />
+        <div className="border rounded w-full p-2 min-h-[100px] relative">
+          {image ? (
+            <div className="relative">
+              <img src={previewUrl!} alt="Uploaded question" className="max-w-full h-auto" />
+              <button
+                type="button"
+                onClick={clearInput}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <textarea
+              id="input"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              className="w-full h-full resize-none focus:outline-none"
+              placeholder="Type your question here..."
+            />
+          )}
+        </div>
       </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
-          Or upload an image:
-        </label>
+      <div className="mb-4 flex space-x-2">
         <input
           type="file"
           accept="image/*"
@@ -60,7 +87,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           Upload Image
         </button>
@@ -72,11 +99,6 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
           Take Photo
         </button>
       </div>
-      {image && (
-        <div className="mb-4">
-          <p>Image selected: {image.name}</p>
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <button
           type="submit"
