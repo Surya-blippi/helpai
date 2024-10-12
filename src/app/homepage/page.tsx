@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/firebase';
 import { signOut } from 'firebase/auth';
@@ -12,6 +12,11 @@ export default function Homepage() {
   const router = useRouter();
   const [question, setQuestion] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSignOut = () => {
     signOut(auth).then(() => {
@@ -30,6 +35,10 @@ export default function Homepage() {
     setQuestion('');
     setImage(null);
   };
+
+  if (!isClient) {
+    return null; // or a loading indicator
+  }
 
   if (!user) {
     router.push('/');

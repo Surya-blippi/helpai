@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface QuestionInputProps {
   question: string;
@@ -56,7 +57,14 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         <div className="border rounded w-full p-2 min-h-[100px] relative">
           {image ? (
             <div className="relative">
-              <img src={previewUrl!} alt="Uploaded question" className="max-w-full h-auto" />
+              <Image 
+                src={previewUrl!} 
+                alt="Uploaded question" 
+                width={300} 
+                height={200} 
+                layout="responsive" 
+                objectFit="contain"
+              />
               <button
                 type="button"
                 onClick={clearInput}
