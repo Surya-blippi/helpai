@@ -6,9 +6,6 @@ import { auth } from '../../firebase/firebase';
 import { useRouter } from 'next/navigation';
 import QuestionInput from './QuestionInput';
 import Solution from './Solution';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY });
 
 export default function Homepage() {
   const [user, loading, error] = useAuthState(auth);
@@ -21,9 +18,7 @@ export default function Homepage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Homepage useEffect triggered');
     if (!loading && !user) {
-      console.log('User not authenticated, redirecting to login');
       router.push('/');
     }
   }, [user, loading, router]);
@@ -34,57 +29,29 @@ export default function Homepage() {
     setSolution(null);
 
     try {
-      let response;
-      if (inputType === 'text') {
-        response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            {
-              "role": "system",
-              "content": [
-                {
-                  "type": "text",
-                  "text": "You are a helpful assistant that provides step-by-step solutions to math and science questions."
-                }
-              ]
-            },
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text": question
-                }
-              ]
-            }
-          ]
-        });
-      } else if (inputType === 'image' && image) {
-        const base64Image = await fileToBase64(image);
-        response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: "Solve the math or science problem in this image. Provide a step-by-step solution." },
-                {
-                  type: "image_url",
-                  image_url: {
-                    "url": `data:image/jpeg;base64,${base64Image}`
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 300
-        });
+      let imageBase64 = '';
+      if (image) {
+        imageBase64 = await fileToBase64(image);
       }
 
-      if (response && response.choices[0].message) {
-        setSolution(response.choices[0].message.content);
+      const response = await fetch('/api/solve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputType,
+          question,
+          imageBase64,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSolution(data.solution);
       } else {
-        throw new Error('No solution generated');
+        throw new Error(data.error || 'An error occurred');
       }
     } catch (err) {
       setErrorMsg('An error occurred while generating the solution. Please try again.');
@@ -118,11 +85,8 @@ export default function Homepage() {
   }
 
   if (!user) {
-    console.log('User not authenticated in render');
     return null;
   }
-
-  console.log('Rendering homepage content');
 
   return (
     <div className="min-h-screen bg-white notebook-background">
