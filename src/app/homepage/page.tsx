@@ -31,6 +31,7 @@ export default function Homepage() {
         imageBase64 = await fileToBase64(image);
       }
 
+      console.log('Sending request to API');
       const response = await fetch('/api/solve', {
         method: 'POST',
         headers: {
@@ -43,11 +44,16 @@ export default function Homepage() {
         }),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.error) {
         throw new Error(data.error);
@@ -55,8 +61,8 @@ export default function Homepage() {
 
       router.push(`/solution?solution=${encodeURIComponent(data.solution)}`);
     } catch (err) {
+      console.error('Error in handleSolve:', err);
       setErrorMsg(err instanceof Error ? err.message : 'An error occurred while generating the solution. Please try again.');
-      console.error('Error details:', err);
     } finally {
       setIsLoading(false);
     }
