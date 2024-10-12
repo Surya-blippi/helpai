@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
+import Webcam from 'react-webcam';
 
 interface QuestionInputProps {
   question: string;
@@ -11,7 +12,9 @@ interface QuestionInputProps {
 
 const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, onSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const webcamRef = useRef<Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -22,25 +25,22 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
     }
   };
 
-  const handleCameraCapture = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        // Here you would typically open a modal or overlay with the camera stream
-        // and allow the user to capture an image. For simplicity, we'll just log the stream.
-        console.log('Camera stream:', stream);
-        // Don't forget to stop the stream when done
-        stream.getTracks().forEach(track => track.stop());
-        // For demonstration, let's pretend we captured an image
-        const mockFile = new File([""], "camera_capture.jpg", { type: "image/jpeg" });
-        setImage(mockFile);
-        setQuestion('');
-        setPreviewUrl(URL.createObjectURL(mockFile));
-      } catch (err) {
-        console.error("Error accessing camera:", err);
+  const handleCameraCapture = useCallback(() => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (imageSrc) {
+        setPreviewUrl(imageSrc);
+        fetch(imageSrc)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+            setImage(file);
+            setQuestion('');
+          });
+        setShowCamera(false);
       }
     }
-  };
+  }, [webcamRef, setImage, setQuestion]);
 
   const clearInput = () => {
     setQuestion('');
@@ -55,7 +55,23 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
           Enter your math or science question or upload an image:
         </label>
         <div className="border rounded w-full p-2 min-h-[100px] relative">
-          {image ? (
+          {showCamera ? (
+            <div className="relative">
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={handleCameraCapture}
+                className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Capture
+              </button>
+            </div>
+          ) : image || previewUrl ? (
             <div className="relative">
               <Image 
                 src={previewUrl!} 
@@ -101,7 +117,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         </button>
         <button
           type="button"
-          onClick={handleCameraCapture}
+          onClick={() => setShowCamera(true)}
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           Take Photo
