@@ -4,6 +4,38 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import dynamic from 'next/dynamic';
+import 'katex/dist/katex.min.css';
+
+const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
+const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
+
+function formatSolution(solution: string) {
+  // Split the solution into lines
+  const lines = solution.split('\n');
+
+  // Process each line
+  return lines.map((line, index) => {
+    // Check if the line is a standalone equation (starts and ends with $$ or \[...\])
+    if ((line.startsWith('$$') && line.endsWith('$$')) || 
+        (line.startsWith('\\[') && line.endsWith('\\]'))) {
+      return <BlockMath key={index}>{line.slice(2, -2)}</BlockMath>;
+    }
+
+    // For inline math and text
+    const parts = line.split(/(\$.*?\$)/g);
+    return (
+      <p key={index}>
+        {parts.map((part, partIndex) => {
+          if (part.startsWith('$') && part.endsWith('$')) {
+            return <InlineMath key={partIndex}>{part.slice(1, -1)}</InlineMath>;
+          }
+          return part;
+        })}
+      </p>
+    );
+  });
+}
 
 function SolutionContent() {
   const [solution, setSolution] = useState<string | null>(null);
@@ -18,16 +50,18 @@ function SolutionContent() {
   }
 
   return (
-    <div className="whitespace-pre-wrap">{solution}</div>
+    <div className="space-y-4">
+      {formatSolution(solution)}
+    </div>
   );
 }
 
 function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBoundary: () => void}) {
   return (
-    <div role="alert">
-      <p>Something went wrong:</p>
+    <div role="alert" className="text-red-500">
+      <p>Error loading solution:</p>
       <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>Try again</button>
+      <button onClick={resetErrorBoundary} className="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Try again</button>
     </div>
   )
 }
@@ -37,7 +71,7 @@ export default function SolutionPage() {
 
   return (
     <div className="min-h-screen bg-white notebook-background">
-      <div className="max-w-2xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <button
           onClick={() => router.back()}
           className="mb-6 flex items-center text-gray-600 hover:text-gray-900"
