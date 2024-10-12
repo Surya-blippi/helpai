@@ -11,29 +11,41 @@ const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineM
 const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
 
 function formatSolution(solution: string) {
-  // Split the solution into paragraphs
-  const paragraphs = solution.split('\n\n');
-
-  return paragraphs.map((paragraph, index) => {
-    // Check if the paragraph is a standalone equation (starts and ends with $$ or \[...\])
-    if ((paragraph.trim().startsWith('$$') && paragraph.trim().endsWith('$$')) || 
-        (paragraph.trim().startsWith('\\[') && paragraph.trim().endsWith('\\]'))) {
-      return <BlockMath key={index}>{paragraph.trim().slice(2, -2)}</BlockMath>;
+  const lines = solution.split('\n');
+  return lines.map((line, index) => {
+    // Handle headers
+    if (line.startsWith('###')) {
+      return <h3 key={index} className="text-xl font-bold mt-6 mb-3">{line.replace('###', '').trim()}</h3>;
     }
+    
+    // Handle bullet points
+    if (line.trim().startsWith('-')) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace('-', '').trim())}</li>;
+    }
+    
+    // Handle numbered lists
+    if (/^\d+\./.test(line)) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace(/^\d+\./, '').trim())}</li>;
+    }
+    
+    // Handle regular paragraphs
+    return <p key={index} className="mb-4">{formatLine(line)}</p>;
+  });
+}
 
-    // For inline math and text
-    const parts = paragraph.split(/(\$.*?\$|\\\(.*?\\\))/g);
-    return (
-      <p key={index} className="mb-4">
-        {parts.map((part, partIndex) => {
-          if ((part.startsWith('$') && part.endsWith('$')) ||
-              (part.startsWith('\\(') && part.endsWith('\\)'))) {
-            return <InlineMath key={partIndex}>{part.slice(1, -1)}</InlineMath>;
-          }
-          return part;
-        })}
-      </p>
-    );
+function formatLine(line: string) {
+  const parts = line.split(/(\$.*?\$|\\\(.*?\\\)|(\*\*.*?\*\*))/g);
+  return parts.map((part, index) => {
+    if (part?.startsWith('$') && part?.endsWith('$')) {
+      return <InlineMath key={index}>{part.slice(1, -1)}</InlineMath>;
+    }
+    if (part?.startsWith('\\(') && part?.endsWith('\\)')) {
+      return <InlineMath key={index}>{part.slice(2, -2)}</InlineMath>;
+    }
+    if (part?.startsWith('**') && part?.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
   });
 }
 
@@ -110,6 +122,9 @@ export default function SolutionPage() {
           margin: 1rem 0;
           overflow-x: auto;
           overflow-y: hidden;
+        }
+        .solution-content ul, .solution-content ol {
+          margin-bottom: 1rem;
         }
       `}</style>
     </div>
