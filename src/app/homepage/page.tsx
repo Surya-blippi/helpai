@@ -46,21 +46,33 @@ export default function Homepage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-24 bg-white">
-      <h1 className="text-3xl mb-8 text-black">Welcome, {user.displayName}!</h1>
-      <QuestionInput 
-        question={question} 
-        setQuestion={setQuestion} 
-        image={image} 
-        setImage={setImage} 
-        onSubmit={handleSubmit}
-      />
-      <button 
-        onClick={handleSignOut}
-        className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors mt-8"
-      >
-        Sign Out
-      </button>
-    </main>
+    <div className="min-h-screen bg-white">
+      <div className="notebook-background p-8">
+        <main className="max-w-4xl mx-auto bg-white bg-opacity-90 p-8 rounded-lg shadow-lg">
+          <h1 className="text-3xl mb-8 text-gray-800 font-bold">Welcome, {user.displayName}!</h1>
+          <QuestionInput 
+            question={question} 
+            setQuestion={setQuestion} 
+            image={image} 
+            setImage={setImage} 
+            onSubmit={handleSubmit}
+          />
+          <button 
+            onClick={handleSignOut}
+            className="mt-8 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Sign Out
+          </button>
+        </main>
+      </div>
+      <style jsx>{`
+        .notebook-background {
+          background-image:
+            linear-gradient(90deg, transparent 39px, #e0e0e0 39px, #e0e0e0 41px, transparent 41px),
+            linear-gradient(#eee .1em, transparent .1em);
+          background-size: 100% 1.2em;
+        }
+      `}</style>
+    </div>
   );
 }
