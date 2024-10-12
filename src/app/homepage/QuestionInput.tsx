@@ -68,11 +68,11 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         </div>
       ) : (
         <div className="border-2 border-gray-300 rounded-lg p-4 min-h-[200px] flex flex-col">
-          {image || previewUrl ? (
-            <div className="relative w-full h-full">
+          {previewUrl ? (
+            <div className="relative w-full h-[200px]">
               <Image 
-                src={previewUrl!} 
-                alt="Uploaded question" 
+                src={previewUrl}
+                alt="Uploaded question"
                 layout="fill"
                 objectFit="contain"
                 className="rounded-lg"
