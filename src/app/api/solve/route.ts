@@ -25,7 +25,7 @@ export async function POST(request: Request) {
             "content": [
               {
                 "type": "text",
-                "text": "You are a helpful assistant that provides step-by-step solutions to math and science questions."
+                "text": "You are a helpful assistant that provides detailed step-by-step solutions to math and science questions. Always provide complete answers."
               }
             ]
           },
@@ -38,7 +38,8 @@ export async function POST(request: Request) {
               }
             ]
           }
-        ]
+        ],
+        max_tokens: 1000  // Increased token limit for text responses
       });
     } else if (inputType === 'image') {
       console.log('Processing image input');
@@ -48,18 +49,18 @@ export async function POST(request: Request) {
           {
             role: "user",
             content: [
-              { type: "text", text: "Solve the math or science problem in this image. Provide a step-by-step solution." },
+              { type: "text", text: "Analyze the math or science problem in this image and provide a detailed, step-by-step solution. Ensure the answer is complete." },
               {
                 type: "image_url",
                 image_url: {
                   "url": `data:image/jpeg;base64,${imageBase64}`,
-                  "detail": "low"
+                  "detail": "high"  // Changed to high detail for better image analysis
                 }
               }
             ]
           }
         ],
-        max_tokens: 300
+        max_tokens: 1000  // Increased token limit for image responses
       });
     } else {
       console.error('Invalid input type:', inputType);
