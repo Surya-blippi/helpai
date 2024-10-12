@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import Webcam from 'react-webcam';
 import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
@@ -16,12 +16,19 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
+  useEffect(() => {
+    if (image) {
+      setPreviewUrl(URL.createObjectURL(image));
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [image]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImage(file);
       setQuestion('');
-      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -29,7 +36,6 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
-        setPreviewUrl(imageSrc);
         fetch(imageSrc)
           .then(res => res.blob())
           .then(blob => {
@@ -45,7 +51,6 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   const clearInput = () => {
     setQuestion('');
     setImage(null);
-    setPreviewUrl(null);
   };
 
   return (
