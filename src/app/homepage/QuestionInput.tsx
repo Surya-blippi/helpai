@@ -8,9 +8,10 @@ interface QuestionInputProps {
   setQuestion: (question: string) => void;
   image: File | null;
   setImage: (image: File | null) => void;
+  setInputType: (type: 'text' | 'image') => void;
 }
 
-const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage }) => {
+const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, setInputType }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const webcamRef = useRef<Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -19,10 +20,14 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   useEffect(() => {
     if (image) {
       setPreviewUrl(URL.createObjectURL(image));
+      setInputType('image');
+    } else if (question) {
+      setInputType('text');
     } else {
       setPreviewUrl(null);
+      setInputType('text');
     }
-  }, [image]);
+  }, [image, question, setInputType]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
