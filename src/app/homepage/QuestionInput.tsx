@@ -49,25 +49,25 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full max-w-md mx-auto">
       {showCamera ? (
         <div className="relative">
           <Webcam
             audio={false}
             ref={webcamRef}
             screenshotFormat="image/jpeg"
-            className="w-full"
+            className="w-full rounded-lg"
           />
           <button
             type="button"
             onClick={handleCameraCapture}
-            className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded"
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
           >
             Capture
           </button>
         </div>
       ) : (
-        <div className="border rounded-lg p-2 flex items-center">
+        <div className="border-b-2 border-gray-300 pb-2 flex items-center">
           {image || previewUrl ? (
             <div className="relative w-full">
               <Image 
@@ -77,11 +77,12 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
                 height={200} 
                 layout="responsive" 
                 objectFit="contain"
+                className="rounded-lg"
               />
               <button
                 type="button"
                 onClick={clearInput}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
               >
                 ×
               </button>
@@ -92,7 +93,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                className="flex-grow focus:outline-none"
+                className="flex-grow focus:outline-none bg-transparent text-lg"
                 placeholder="Type your question here..."
               />
               <button

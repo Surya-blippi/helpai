@@ -34,11 +34,11 @@ export default function Homepage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="notebook-background p-8">
-        <main className="max-w-4xl mx-auto bg-white bg-opacity-90 p-8 rounded-lg shadow-lg">
-          <h1 className="text-3xl mb-8 text-gray-800 font-bold">DoubtSolve</h1>
-          <div className="mb-4">
+    <div className="min-h-screen bg-white notebook-background">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
+          <h1 className="text-3xl mb-6 text-gray-800 font-bold text-center">DoubtSolve</h1>
+          <div className="mb-6">
             <QuestionInput 
               question={question} 
               setQuestion={setQuestion} 
@@ -48,12 +48,20 @@ export default function Homepage() {
           </div>
           <button 
             onClick={handleSolve}
-            className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition-colors shadow-lg"
           >
             Solve
           </button>
         </main>
       </div>
+      <style jsx global>{`
+        .notebook-background {
+          background-image:
+            linear-gradient(#e5e5e5 1px, transparent 1px),
+            linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
+      `}</style>
     </div>
   );
 }

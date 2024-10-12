@@ -4,16 +4,8 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
 }
 
 body {
@@ -23,7 +15,7 @@ body {
 
 .notebook-background {
   background-image:
-    linear-gradient(90deg, transparent 39px, #e0e0e0 39px, #e0e0e0 41px, transparent 41px),
-    linear-gradient(#eee .1em, transparent .1em);
-  background-size: 100% 1.2em;
+    linear-gradient(#e5e5e5 1px, transparent 1px),
+    linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+  background-size: 20px 20px;
 }
