@@ -11,23 +11,23 @@ const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineM
 const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
 
 function formatSolution(solution: string) {
-  // Split the solution into lines
-  const lines = solution.split('\n');
+  // Split the solution into paragraphs
+  const paragraphs = solution.split('\n\n');
 
-  // Process each line
-  return lines.map((line, index) => {
-    // Check if the line is a standalone equation (starts and ends with $$ or \[...\])
-    if ((line.startsWith('$$') && line.endsWith('$$')) || 
-        (line.startsWith('\\[') && line.endsWith('\\]'))) {
-      return <BlockMath key={index}>{line.slice(2, -2)}</BlockMath>;
+  return paragraphs.map((paragraph, index) => {
+    // Check if the paragraph is a standalone equation (starts and ends with $$ or \[...\])
+    if ((paragraph.trim().startsWith('$$') && paragraph.trim().endsWith('$$')) || 
+        (paragraph.trim().startsWith('\\[') && paragraph.trim().endsWith('\\]'))) {
+      return <BlockMath key={index}>{paragraph.trim().slice(2, -2)}</BlockMath>;
     }
 
     // For inline math and text
-    const parts = line.split(/(\$.*?\$)/g);
+    const parts = paragraph.split(/(\$.*?\$|\\\(.*?\\\))/g);
     return (
-      <p key={index}>
+      <p key={index} className="mb-4">
         {parts.map((part, partIndex) => {
-          if (part.startsWith('$') && part.endsWith('$')) {
+          if ((part.startsWith('$') && part.endsWith('$')) ||
+              (part.startsWith('\\(') && part.endsWith('\\)'))) {
             return <InlineMath key={partIndex}>{part.slice(1, -1)}</InlineMath>;
           }
           return part;
@@ -83,7 +83,9 @@ export default function SolutionPage() {
           <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
           <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
             <Suspense fallback={<div>Loading...</div>}>
-              <SolutionContent />
+              <div className="solution-content prose prose-lg max-w-none">
+                <SolutionContent />
+              </div>
             </Suspense>
           </ErrorBoundary>
         </main>
@@ -94,6 +96,20 @@ export default function SolutionPage() {
             linear-gradient(#e5e5e5 1px, transparent 1px),
             linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
           background-size: 20px 20px;
+        }
+        .solution-content h3 {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        .solution-content p {
+          margin-bottom: 1rem;
+        }
+        .solution-content .katex-display {
+          margin: 1rem 0;
+          overflow-x: auto;
+          overflow-y: hidden;
         }
       `}</style>
     </div>
