@@ -5,6 +5,7 @@ interface SolutionProps {
 }
 
 const Solution: React.FC<SolutionProps> = ({ solution }) => {
+  console.log('Rendering Solution component');
   return (
     <div className="mt-8 p-4 bg-gray-100 rounded-lg">
       <h2 className="text-xl font-bold mb-4">Solution:</h2>

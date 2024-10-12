@@ -11,24 +11,26 @@ import OpenAI from 'openai';
 const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY });
 
 export default function Homepage() {
-  const [user] = useAuthState(auth);
+  const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
   const [question, setQuestion] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [inputType, setInputType] = useState<'text' | 'image'>('text');
   const [isLoading, setIsLoading] = useState(false);
   const [solution, setSolution] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    console.log('Homepage useEffect triggered');
+    if (!loading && !user) {
+      console.log('User not authenticated, redirecting to login');
       router.push('/');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
   const handleSolve = async () => {
     setIsLoading(true);
-    setError(null);
+    setErrorMsg(null);
     setSolution(null);
 
     try {
@@ -85,7 +87,7 @@ export default function Homepage() {
         throw new Error('No solution generated');
       }
     } catch (err) {
-      setError('An error occurred while generating the solution. Please try again.');
+      setErrorMsg('An error occurred while generating the solution. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -107,9 +109,20 @@ export default function Homepage() {
     });
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
   if (!user) {
+    console.log('User not authenticated in render');
     return null;
   }
+
+  console.log('Rendering homepage content');
 
   return (
     <div className="min-h-screen bg-white notebook-background">
@@ -139,8 +152,8 @@ export default function Homepage() {
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
             </div>
           )}
-          {error && (
-            <div className="mt-4 text-red-500 text-center">{error}</div>
+          {errorMsg && (
+            <div className="mt-4 text-red-500 text-center">{errorMsg}</div>
           )}
           {solution && (
             <Solution solution={solution} />

@@ -16,16 +16,23 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   const webcamRef = useRef<Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (image) {
-      setPreviewUrl(URL.createObjectURL(image));
-      setInputType('image');
-    } else if (question) {
-      setInputType('text');
-    } else {
-      setPreviewUrl(null);
-      setInputType('text');
+    console.log('QuestionInput useEffect triggered');
+    try {
+      if (image) {
+        setPreviewUrl(URL.createObjectURL(image));
+        setInputType('image');
+      } else if (question) {
+        setInputType('text');
+      } else {
+        setPreviewUrl(null);
+        setInputType('text');
+      }
+    } catch (err) {
+      console.error('Error in QuestionInput useEffect:', err);
+      setError('An error occurred while processing the input');
     }
   }, [image, question, setInputType]);
 
@@ -56,7 +63,12 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   const clearInput = () => {
     setQuestion('');
     setImage(null);
+    setPreviewUrl(null);
   };
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   return (
     <div className="relative w-full">
