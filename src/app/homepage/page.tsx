@@ -5,7 +5,6 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../firebase/firebase';
 import { useRouter } from 'next/navigation';
 import QuestionInput from './QuestionInput';
-import Solution from './Solution';
 
 export default function Homepage() {
   const [user, loading, error] = useAuthState(auth);
@@ -14,7 +13,6 @@ export default function Homepage() {
   const [image, setImage] = useState<File | null>(null);
   const [inputType, setInputType] = useState<'text' | 'image'>('text');
   const [isLoading, setIsLoading] = useState(false);
-  const [solution, setSolution] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,7 +24,6 @@ export default function Homepage() {
   const handleSolve = async () => {
     setIsLoading(true);
     setErrorMsg(null);
-    setSolution(null);
 
     try {
       let imageBase64 = '';
@@ -49,12 +46,12 @@ export default function Homepage() {
       const data = await response.json();
 
       if (response.ok) {
-        setSolution(data.solution);
+        router.push(`/solution?solution=${encodeURIComponent(data.solution)}`);
       } else {
         throw new Error(data.error || 'An error occurred');
       }
     } catch (err) {
-      setErrorMsg('An error occurred while generating the solution. Please try again.');
+      setErrorMsg(err instanceof Error ? err.message : 'An error occurred while generating the solution. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -118,9 +115,6 @@ export default function Homepage() {
           )}
           {errorMsg && (
             <div className="mt-4 text-red-500 text-center">{errorMsg}</div>
-          )}
-          {solution && (
-            <Solution solution={solution} />
           )}
         </main>
       </div>
