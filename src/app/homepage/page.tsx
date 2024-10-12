@@ -43,16 +43,20 @@ export default function Homepage() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
-        router.push(`/solution?solution=${encodeURIComponent(data.solution)}`);
-      } else {
-        throw new Error(data.error || 'An error occurred');
+      if (data.error) {
+        throw new Error(data.error);
       }
+
+      router.push(`/solution?solution=${encodeURIComponent(data.solution)}`);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'An error occurred while generating the solution. Please try again.');
-      console.error(err);
+      console.error('Error details:', err);
     } finally {
       setIsLoading(false);
     }

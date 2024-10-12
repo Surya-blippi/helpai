@@ -1,17 +1,29 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai: OpenAI;
+
+try {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} catch (error) {
+  console.error('Failed to initialize OpenAI client:', error);
+}
+
+export const runtime = 'edge'; // This enables the Edge runtime, which has a longer execution time limit
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { inputType, question, imageBase64 } = body;
+  if (!openai) {
+    return NextResponse.json({ error: 'OpenAI client is not initialized. Please check your API key.' }, { status: 500 });
+  }
 
   try {
+    const body = await request.json();
+    const { inputType, question, imageBase64 } = body;
+
     let response;
     if (inputType === 'text') {
       response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4",  // Make sure this is the correct model name
         messages: [
           {
             "role": "system",
@@ -21,11 +33,11 @@ export async function POST(request: Request) {
             "role": "user",
             "content": question
           }
-        ]
+        ],
       });
     } else if (inputType === 'image') {
       response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4-vision-preview",  // Make sure this is the correct model name for image analysis
         messages: [
           {
             role: "user",
@@ -40,7 +52,7 @@ export async function POST(request: Request) {
             ]
           }
         ],
-        max_tokens: 300
+        max_tokens: 300,
       });
     }
 
@@ -51,6 +63,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Error in OpenAI API:', error);
-    return NextResponse.json({ error: 'An error occurred while generating the solution' }, { status: 500 });
+    return NextResponse.json({ error: 'An error occurred while generating the solution. Please try again.' }, { status: 500 });
   }
 }
