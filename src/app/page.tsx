@@ -14,7 +14,10 @@ export default function Home() {
       
       {/* Content */}
       <div className="z-10 text-center">
-        <h1 className="text-4xl font-bold mb-8 text-gray-800">DoubtSolve.</h1>
+        <h1 className="text-4xl mb-8 text-black">
+          <span className="font-normal">Doubt</span>
+          <span className="font-bold">Solve</span>
+        </h1>
         <button className="bg-black text-white px-6 py-3 rounded-lg flex items-center hover:bg-gray-800 transition-colors">
           <UserCircleIcon className="h-6 w-6 mr-2" />
           Sign in with Google
