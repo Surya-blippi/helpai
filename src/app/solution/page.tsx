@@ -4,12 +4,16 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { ErrorBoundary } from 'react-error-boundary';
-import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
 import dynamic from 'next/dynamic';
 
-const MathJax = dynamic(() => import('mathjax-react').then(mod => mod.MathJax), { ssr: false });
-const MathJaxContext = dynamic(() => import('mathjax-react').then(mod => mod.MathJaxContext), { ssr: false });
+// Dynamically import KaTeX CSS to avoid SSR issues
+const DynamicKaTeXCSS = dynamic(() => import('./DynamicKaTeXCSS'), { ssr: false });
+
+// Dynamically import math components to avoid SSR issues
+const DynamicInlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
+const DynamicBlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
+const DynamicMathJax = dynamic(() => import('mathjax-react').then((mod) => mod.MathJax), { ssr: false });
+const DynamicMathJaxContext = dynamic(() => import('mathjax-react').then((mod) => mod.MathJaxContext), { ssr: false });
 
 // Import the types from the declaration file
 import type { MathJaxConfig } from 'mathjax-react';
@@ -35,9 +39,9 @@ const MathComponent: React.FC<{ math: string, display?: boolean }> = ({ math, di
   useEffect(() => {
     try {
       if (display) {
-        BlockMath({ math });
+        DynamicBlockMath({ math });
       } else {
-        InlineMath({ math });
+        DynamicInlineMath({ math });
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -50,9 +54,9 @@ const MathComponent: React.FC<{ math: string, display?: boolean }> = ({ math, di
   }, [math, display]);
 
   if (useKaTeX) {
-    return display ? <BlockMath math={math} /> : <InlineMath math={math} />;
+    return display ? <DynamicBlockMath math={math} /> : <DynamicInlineMath math={math} />;
   } else {
-    return <MathJax inline={!display}>{`\\(${math}\\)`}</MathJax>;
+    return <DynamicMathJax inline={!display}>{`\\(${math}\\)`}</DynamicMathJax>;
   }
 };
 
@@ -139,53 +143,65 @@ function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBou
 
 export default function SolutionPage() {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null; // or a loading spinner
+  }
 
   return (
-    <MathJaxContext config={mathJaxConfig}>
-      <div className="min-h-screen bg-white notebook-background">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <button
-            onClick={() => router.back()}
-            className="mb-6 flex items-center text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back
-          </button>
-          <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
-            <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
-              <div className="solution-content prose prose-lg max-w-none">
-                <SolutionContent />
-              </div>
-            </ErrorBoundary>
-          </main>
+    <>
+      <DynamicKaTeXCSS />
+      <DynamicMathJaxContext config={mathJaxConfig}>
+        <div className="min-h-screen bg-white notebook-background">
+          <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <button
+              onClick={() => router.back()}
+              className="mb-6 flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeftIcon className="h-5 w-5 mr-2" />
+              Back
+            </button>
+            <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
+              <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
+              <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
+                <div className="solution-content prose prose-lg max-w-none">
+                  <SolutionContent />
+                </div>
+              </ErrorBoundary>
+            </main>
+          </div>
+          <style jsx global>{`
+            .notebook-background {
+              background-image:
+                linear-gradient(#e5e5e5 1px, transparent 1px),
+                linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+              background-size: 20px 20px;
+            }
+            .solution-content h3 {
+              font-size: 1.5rem;
+              font-weight: bold;
+              margin-top: 1.5rem;
+              margin-bottom: 1rem;
+            }
+            .solution-content p {
+              margin-bottom: 1rem;
+            }
+            .solution-content .katex-display {
+              margin: 1rem 0;
+              overflow-x: auto;
+              overflow-y: hidden;
+            }
+            .solution-content ul, .solution-content ol {
+              margin-bottom: 1rem;
+            }
+          `}</style>
         </div>
-        <style jsx global>{`
-          .notebook-background {
-            background-image:
-              linear-gradient(#e5e5e5 1px, transparent 1px),
-              linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
-            background-size: 20px 20px;
-          }
-          .solution-content h3 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-          }
-          .solution-content p {
-            margin-bottom: 1rem;
-          }
-          .solution-content .katex-display {
-            margin: 1rem 0;
-            overflow-x: auto;
-            overflow-y: hidden;
-          }
-          .solution-content ul, .solution-content ol {
-            margin-bottom: 1rem;
-          }
-        `}</style>
-      </div>
-    </MathJaxContext>
+      </DynamicMathJaxContext>
+    </>
   );
 }
