@@ -7,37 +7,52 @@ import { ErrorBoundary } from 'react-error-boundary';
 import dynamic from 'next/dynamic';
 import 'katex/dist/katex.min.css';
 
-const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
-const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
+import type { FC, ReactNode } from 'react';
+import type { InlineMathProps, BlockMathProps } from 'react-katex';
 
-function formatSolution(solution: string) {
-  // Split the solution into paragraphs
-  const paragraphs = solution.split('\n\n');
+const InlineMath = dynamic<InlineMathProps>(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
+const BlockMath = dynamic<BlockMathProps>(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
 
-  return paragraphs.map((paragraph, index) => {
-    // Check if the paragraph is a standalone equation (starts and ends with $$ or \[...\])
-    if ((paragraph.trim().startsWith('$$') && paragraph.trim().endsWith('$$')) || 
-        (paragraph.trim().startsWith('\\[') && paragraph.trim().endsWith('\\]'))) {
-      return <BlockMath key={index}>{paragraph.trim().slice(2, -2)}</BlockMath>;
+function formatSolution(solution: string): ReactNode[] {
+  const lines = solution.split('\n');
+  return lines.map((line, index) => {
+    // Handle headers
+    if (line.startsWith('###')) {
+      return <h3 key={index} className="text-xl font-bold mt-6 mb-3">{line.replace('###', '').trim()}</h3>;
     }
-
-    // For inline math and text
-    const parts = paragraph.split(/(\$.*?\$|\\\(.*?\\\))/g);
-    return (
-      <p key={index} className="mb-4">
-        {parts.map((part, partIndex) => {
-          if ((part.startsWith('$') && part.endsWith('$')) ||
-              (part.startsWith('\\(') && part.endsWith('\\)'))) {
-            return <InlineMath key={partIndex}>{part.slice(1, -1)}</InlineMath>;
-          }
-          return part;
-        })}
-      </p>
-    );
+    
+    // Handle bullet points
+    if (line.trim().startsWith('-')) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace('-', '').trim())}</li>;
+    }
+    
+    // Handle numbered lists
+    if (/^\d+\./.test(line)) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace(/^\d+\./, '').trim())}</li>;
+    }
+    
+    // Handle regular paragraphs
+    return <p key={index} className="mb-4">{formatLine(line)}</p>;
   });
 }
 
-function SolutionContent() {
+function formatLine(line: string): ReactNode[] {
+  const parts = line.split(/(\$.*?\$|\\\(.*?\\\)|(\*\*.*?\*\*))/g);
+  return parts.map((part, index) => {
+    if (part?.startsWith('$') && part?.endsWith('$')) {
+      return <InlineMath key={index}>{part.slice(1, -1)}</InlineMath>;
+    }
+    if (part?.startsWith('\\(') && part?.endsWith('\\)')) {
+      return <InlineMath key={index}>{part.slice(2, -2)}</InlineMath>;
+    }
+    if (part?.startsWith('**') && part?.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+const SolutionContent: FC = () => {
   const [solution, setSolution] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,7 +71,12 @@ function SolutionContent() {
   );
 }
 
-function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBoundary: () => void}) {
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
+}
+
+const ErrorFallback: FC<ErrorFallbackProps> = ({error, resetErrorBoundary}) => {
   return (
     <div role="alert" className="text-red-500">
       <p>Error loading solution:</p>
@@ -66,7 +86,7 @@ function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBou
   )
 }
 
-export default function SolutionPage() {
+const SolutionPage: FC = () => {
   const router = useRouter();
 
   return (
@@ -111,7 +131,12 @@ export default function SolutionPage() {
           overflow-x: auto;
           overflow-y: hidden;
         }
+        .solution-content ul, .solution-content ol {
+          margin-bottom: 1rem;
+        }
       `}</style>
     </div>
   );
 }
+
+export default SolutionPage;
