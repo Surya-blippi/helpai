@@ -1,16 +1,13 @@
 'use client'
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { Suspense, useEffect, useState, ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import dynamic from 'next/dynamic';
 import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
-const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
-const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
-
-function formatSolution(solution: string): ReactNode[] {
+function formatSolution(solution: string): React.ReactNode[] {
   const lines = solution.split('\n');
   return lines.map((line, index) => {
     // Handle headers
@@ -30,7 +27,7 @@ function formatSolution(solution: string): ReactNode[] {
     
     // Handle block equations
     if (line.trim().startsWith('$$') && line.trim().endsWith('$$')) {
-      return <BlockMath key={index}>{line.trim().slice(2, -2)}</BlockMath>;
+      return <BlockMath key={index} math={line.trim().slice(2, -2)} />;
     }
     
     // Handle regular paragraphs
@@ -38,14 +35,14 @@ function formatSolution(solution: string): ReactNode[] {
   });
 }
 
-function formatLine(line: string): ReactNode[] {
+function formatLine(line: string): React.ReactNode[] {
   const parts = line.split(/(\$.*?\$|\\\(.*?\\\)|(\*\*.*?\*\*))/g);
   return parts.map((part, index) => {
     if (part?.startsWith('$') && part?.endsWith('$')) {
-      return <InlineMath key={index}>{part.slice(1, -1)}</InlineMath>;
+      return <InlineMath key={index} math={part.slice(1, -1)} />;
     }
     if (part?.startsWith('\\(') && part?.endsWith('\\)')) {
-      return <InlineMath key={index}>{part.slice(2, -2)}</InlineMath>;
+      return <InlineMath key={index} math={part.slice(2, -2)} />;
     }
     if (part?.startsWith('**') && part?.endsWith('**')) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -55,9 +52,9 @@ function formatLine(line: string): ReactNode[] {
 }
 
 function SolutionContent() {
-  const [solution, setSolution] = useState<string | null>(null);
+  const [solution, setSolution] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     setSolution(searchParams.get('solution'));
   }, []);
@@ -73,12 +70,7 @@ function SolutionContent() {
   );
 }
 
-interface ErrorFallbackProps {
-  error: Error;
-  resetErrorBoundary: () => void;
-}
-
-function ErrorFallback({error, resetErrorBoundary}: ErrorFallbackProps) {
+function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBoundary: () => void}) {
   return (
     <div role="alert" className="text-red-500">
       <p>Error loading solution:</p>
@@ -104,11 +96,9 @@ export default function SolutionPage() {
         <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
           <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <div className="solution-content prose prose-lg max-w-none">
-                <SolutionContent />
-              </div>
-            </Suspense>
+            <div className="solution-content prose prose-lg max-w-none">
+              <SolutionContent />
+            </div>
           </ErrorBoundary>
         </main>
       </div>
