@@ -3,7 +3,11 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
-const Webcam = dynamic(() => import('react-webcam').then((mod) => mod.default), { ssr: false });
+// Use a more specific type for the Webcam component
+const Webcam = dynamic<React.ComponentProps<typeof import('react-webcam')['default']>>(
+  () => import('react-webcam').then((mod) => mod.default),
+  { ssr: false }
+);
 
 interface QuestionInputProps {
   question: string;
@@ -15,7 +19,8 @@ interface QuestionInputProps {
 
 const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, setInputType }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const webcamRef = useRef<any>(null);
+  // Use a more specific type for the webcam ref
+  const webcamRef = useRef<import('react-webcam').Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
@@ -51,7 +56,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         setShowCamera(false);
       }
     }
-  }, [webcamRef, setImage, setQuestion]);
+  }, [setImage, setQuestion]);
 
   const clearInput = () => {
     setQuestion('');
