@@ -3,11 +3,14 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
-// Use a more generic type for the Webcam component
-const Webcam = dynamic(() => import('react-webcam'), { ssr: false });
+// Adjusted dynamic import to correctly import the default export
+const Webcam = dynamic(
+  () => import('react-webcam').then((mod) => mod.default),
+  { ssr: false }
+);
 
-// Import the Webcam type for proper typing
-import type Webcam from 'react-webcam';
+// Import the WebcamProps type for proper typing
+import type { WebcamProps } from 'react-webcam';
 
 interface QuestionInputProps {
   question: string;
@@ -17,7 +20,13 @@ interface QuestionInputProps {
   setInputType: (type: 'text' | 'image') => void;
 }
 
-const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, setInputType }) => {
+const QuestionInput: React.FC<QuestionInputProps> = ({
+  question,
+  setQuestion,
+  image,
+  setImage,
+  setInputType,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const webcamRef = useRef<Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -46,9 +55,9 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
         fetch(imageSrc)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+          .then((res) => res.blob())
+          .then((blob) => {
+            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
             setImage(file);
             setQuestion('');
           });
@@ -86,7 +95,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
         <div className="border-2 border-gray-300 rounded-lg p-4 min-h-[200px] flex flex-col">
           {previewUrl ? (
             <div className="relative w-full h-[200px]">
-              <Image 
+              <Image
                 src={previewUrl}
                 alt="Uploaded question"
                 layout="fill"
