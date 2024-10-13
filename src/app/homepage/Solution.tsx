@@ -2,8 +2,57 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import dynamic from 'next/dynamic';
+import 'katex/dist/katex.min.css';
+
+const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
+const BlockMath = dynamic(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
+
+function formatSolution(solution: string): ReactNode[] {
+  const lines = solution.split('\n');
+  return lines.map((line, index) => {
+    // Handle headers
+    if (line.startsWith('###')) {
+      return <h3 key={index} className="text-xl font-bold mt-6 mb-3">{line.replace('###', '').trim()}</h3>;
+    }
+    
+    // Handle bullet points
+    if (line.trim().startsWith('-')) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace('-', '').trim())}</li>;
+    }
+    
+    // Handle numbered lists
+    if (/^\d+\./.test(line)) {
+      return <li key={index} className="ml-6 mb-2">{formatLine(line.replace(/^\d+\./, '').trim())}</li>;
+    }
+    
+    // Handle block equations
+    if (line.trim().startsWith('$$') && line.trim().endsWith('$$')) {
+      return <BlockMath key={index}>{line.trim().slice(2, -2)}</BlockMath>;
+    }
+    
+    // Handle regular paragraphs
+    return <p key={index} className="mb-4">{formatLine(line)}</p>;
+  });
+}
+
+function formatLine(line: string): ReactNode[] {
+  const parts = line.split(/(\$.*?\$|\\\(.*?\\\)|(\*\*.*?\*\*))/g);
+  return parts.map((part, index) => {
+    if (part?.startsWith('$') && part?.endsWith('$')) {
+      return <InlineMath key={index}>{part.slice(1, -1)}</InlineMath>;
+    }
+    if (part?.startsWith('\\(') && part?.endsWith('\\)')) {
+      return <InlineMath key={index}>{part.slice(2, -2)}</InlineMath>;
+    }
+    if (part?.startsWith('**') && part?.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
 
 function SolutionContent() {
   const [solution, setSolution] = useState<string | null>(null);
@@ -18,11 +67,18 @@ function SolutionContent() {
   }
 
   return (
-    <div className="whitespace-pre-wrap break-words">{solution}</div>
+    <div className="space-y-4">
+      {formatSolution(solution)}
+    </div>
   );
 }
 
-function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBoundary: () => void}) {
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
+}
+
+function ErrorFallback({error, resetErrorBoundary}: ErrorFallbackProps) {
   return (
     <div role="alert" className="text-red-500">
       <p>Error loading solution:</p>
@@ -49,7 +105,9 @@ export default function SolutionPage() {
           <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
           <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
             <Suspense fallback={<div>Loading...</div>}>
-              <SolutionContent />
+              <div className="solution-content prose prose-lg max-w-none">
+                <SolutionContent />
+              </div>
             </Suspense>
           </ErrorBoundary>
         </main>
@@ -60,6 +118,23 @@ export default function SolutionPage() {
             linear-gradient(#e5e5e5 1px, transparent 1px),
             linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
           background-size: 20px 20px;
+        }
+        .solution-content h3 {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        .solution-content p {
+          margin-bottom: 1rem;
+        }
+        .solution-content .katex-display {
+          margin: 1rem 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+        }
+        .solution-content ul, .solution-content ol {
+          margin-bottom: 1rem;
         }
       `}</style>
     </div>

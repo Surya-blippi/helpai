@@ -1,24 +1,16 @@
 declare module 'react-katex' {
-    import React from 'react';
+    import { ReactNode } from 'react';
   
-    export interface KaTeXProps {
-      children: string;
+    export interface InlineMathProps {
       math?: string;
-      block?: boolean;
-      errorColor?: string;
-      renderError?: (error: Error | string) => React.ReactNode;
-      settings?: {
-        throwOnError?: boolean;
-        errorColor?: string;
-        macros?: object;
-        colorIsTextColor?: boolean;
-        maxSize?: number;
-        maxExpand?: number;
-        allowedProtocols?: string[];
-        allowedUris?: RegExp;
-      };
+      children?: string;
     }
   
-    export const InlineMath: React.FC<KaTeXProps>;
-    export const BlockMath: React.FC<KaTeXProps>;
+    export interface BlockMathProps {
+      math?: string;
+      children?: string;
+    }
+  
+    export const InlineMath: React.FC<InlineMathProps>;
+    export const BlockMath: React.FC<BlockMathProps>;
   }

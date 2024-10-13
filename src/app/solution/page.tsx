@@ -31,6 +31,11 @@ function formatSolution(solution: string): ReactNode[] {
       return <li key={index} className="ml-6 mb-2">{formatLine(line.replace(/^\d+\./, '').trim())}</li>;
     }
     
+    // Handle block equations
+    if (line.trim().startsWith('$$') && line.trim().endsWith('$$')) {
+      return <BlockMath key={index}>{line.trim().slice(2, -2)}</BlockMath>;
+    }
+    
     // Handle regular paragraphs
     return <p key={index} className="mb-4">{formatLine(line)}</p>;
   });
