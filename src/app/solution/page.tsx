@@ -1,19 +1,13 @@
 'use client'
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import dynamic from 'next/dynamic';
 import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
-import type { FC, ReactNode } from 'react';
-import type { InlineMathProps, BlockMathProps } from 'react-katex';
-
-const InlineMath = dynamic<InlineMathProps>(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
-const BlockMath = dynamic<BlockMathProps>(() => import('react-katex').then((mod) => mod.BlockMath), { ssr: false });
-
-function formatSolution(solution: string): ReactNode[] {
+function formatSolution(solution: string): React.ReactNode[] {
   const lines = solution.split('\n');
   return lines.map((line, index) => {
     // Handle headers
@@ -33,7 +27,7 @@ function formatSolution(solution: string): ReactNode[] {
     
     // Handle block equations
     if (line.trim().startsWith('$$') && line.trim().endsWith('$$')) {
-      return <BlockMath key={index}>{line.trim().slice(2, -2)}</BlockMath>;
+      return <BlockMath key={index} math={line.trim().slice(2, -2)} />;
     }
     
     // Handle regular paragraphs
@@ -41,26 +35,30 @@ function formatSolution(solution: string): ReactNode[] {
   });
 }
 
-function formatLine(line: string): ReactNode[] {
+function formatLine(line: string): React.ReactNode[] {
   const parts = line.split(/(\$.*?\$|\\\(.*?\\\)|(\*\*.*?\*\*))/g);
   return parts.map((part, index) => {
     if (part?.startsWith('$') && part?.endsWith('$')) {
-      return <InlineMath key={index}>{part.slice(1, -1)}</InlineMath>;
+      return <InlineMath key={index} math={part.slice(1, -1)} />;
     }
     if (part?.startsWith('\\(') && part?.endsWith('\\)')) {
-      return <InlineMath key={index}>{part.slice(2, -2)}</InlineMath>;
+      return <InlineMath key={index} math={part.slice(2, -2)} />;
     }
     if (part?.startsWith('**') && part?.endsWith('**')) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    // Check for standalone LaTeX commands and wrap them in InlineMath
+    if (/\\[a-zA-Z]+/.test(part)) {
+      return <InlineMath key={index} math={part} />;
     }
     return part;
   });
 }
 
-const SolutionContent: FC = () => {
-  const [solution, setSolution] = useState<string | null>(null);
+function SolutionContent() {
+  const [solution, setSolution] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     setSolution(searchParams.get('solution'));
   }, []);
@@ -76,12 +74,7 @@ const SolutionContent: FC = () => {
   );
 }
 
-interface ErrorFallbackProps {
-  error: Error;
-  resetErrorBoundary: () => void;
-}
-
-const ErrorFallback: FC<ErrorFallbackProps> = ({error, resetErrorBoundary}) => {
+function ErrorFallback({error, resetErrorBoundary}: {error: Error, resetErrorBoundary: () => void}) {
   return (
     <div role="alert" className="text-red-500">
       <p>Error loading solution:</p>
@@ -91,7 +84,7 @@ const ErrorFallback: FC<ErrorFallbackProps> = ({error, resetErrorBoundary}) => {
   )
 }
 
-const SolutionPage: FC = () => {
+export default function SolutionPage() {
   const router = useRouter();
 
   return (
@@ -107,11 +100,9 @@ const SolutionPage: FC = () => {
         <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
           <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => router.back()}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <div className="solution-content prose prose-lg max-w-none">
-                <SolutionContent />
-              </div>
-            </Suspense>
+            <div className="solution-content prose prose-lg max-w-none">
+              <SolutionContent />
+            </div>
           </ErrorBoundary>
         </main>
       </div>
@@ -143,5 +134,3 @@ const SolutionPage: FC = () => {
     </div>
   );
 }
-
-export default SolutionPage;
