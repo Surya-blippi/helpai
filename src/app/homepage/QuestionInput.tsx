@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
@@ -19,13 +19,21 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
+  useEffect(() => {
+    if (image) {
+      setPreviewUrl(URL.createObjectURL(image));
+      setInputType('image');
+    } else {
+      setPreviewUrl(null);
+      setInputType('text');
+    }
+  }, [image, setInputType]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImage(file);
       setQuestion('');
-      setPreviewUrl(URL.createObjectURL(file));
-      setInputType('image');
     }
   };
 
@@ -39,13 +47,11 @@ const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, im
             const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
             setImage(file);
             setQuestion('');
-            setPreviewUrl(imageSrc);
-            setInputType('image');
           });
         setShowCamera(false);
       }
     }
-  }, [webcamRef, setImage, setQuestion, setInputType]);
+  }, [webcamRef, setImage, setQuestion]);
 
   const clearInput = () => {
     setQuestion('');
