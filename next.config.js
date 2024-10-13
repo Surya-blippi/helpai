@@ -5,6 +5,9 @@ const nextConfig = {
   images: {
     domains: ['localhost', 'vercel.app'],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig

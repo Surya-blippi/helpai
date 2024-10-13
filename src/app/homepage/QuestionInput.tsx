@@ -6,6 +6,9 @@ import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
 // Use a more generic type for the Webcam component
 const Webcam = dynamic(() => import('react-webcam'), { ssr: false });
 
+// Import the Webcam type for proper typing
+import type Webcam from 'react-webcam';
+
 interface QuestionInputProps {
   question: string;
   setQuestion: (question: string) => void;
@@ -16,7 +19,7 @@ interface QuestionInputProps {
 
 const QuestionInput: React.FC<QuestionInputProps> = ({ question, setQuestion, image, setImage, setInputType }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const webcamRef = useRef<any>(null);
+  const webcamRef = useRef<Webcam>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
