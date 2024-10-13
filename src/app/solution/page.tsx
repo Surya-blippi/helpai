@@ -1,56 +1,31 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import katex from 'katex';
 
-// Helper function to render LaTeX
-function renderLatex(latex: string, displayMode: boolean = false): string {
-  try {
-    return katex.renderToString(latex, {
-      throwOnError: false,
-      displayMode: displayMode,
-    });
-  } catch (error) {
-    console.error('LaTeX rendering error:', error);
-    return latex; // Return original string if rendering fails
-  }
-}
-
-// Helper function to process the solution text
-function processSolution(solution: string): string {
-  // Replace inline LaTeX
-  solution = solution.replace(/\$([^\$]+)\$/g, (match, latex) => renderLatex(latex));
-  
-  // Replace display LaTeX
-  solution = solution.replace(/\$\$([^\$]+)\$\$/g, (match, latex) => renderLatex(latex, true));
-  
-  // Replace headers
-  solution = solution.replace(/^###\s*(.*)$/gm, '<h3 class="text-xl font-bold mt-6 mb-3">$1</h3>');
-  
-  // Replace bullet points
-  solution = solution.replace(/^-\s*(.*)$/gm, '<li class="ml-6 mb-2">$1</li>');
-  
-  // Replace numbered lists (assuming they're formatted as "1. ", "2. ", etc.)
-  solution = solution.replace(/^\d+\.\s*(.*)$/gm, '<li class="ml-6 mb-2">$1</li>');
-  
-  // Wrap remaining text in paragraphs
-  solution = solution.replace(/^(?!<h3|<li)(.+)$/gm, '<p class="mb-4">$1</p>');
-  
-  return solution;
-}
+type ComponentType = React.FC<{ children: ReactNode }>;
 
 export default function SolutionPage() {
   const router = useRouter();
-  const [processedSolution, setProcessedSolution] = useState<string>('');
+  const [solution, setSolution] = useState<string>('');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const solution = searchParams.get('solution') || '';
-    setProcessedSolution(processSolution(solution));
+    const solutionParam = searchParams.get('solution') || '';
+    setSolution(decodeURIComponent(solutionParam));
   }, []);
+
+  // Define the components with proper typing
+  const components: { [key: string]: ComponentType } = {
+    h3: ({ children }) => <h3 className="text-xl font-bold mt-6 mb-3">{children}</h3>,
+    p: ({ children }) => <p className="mb-4">{children}</p>,
+    li: ({ children }) => <li className="ml-6 mb-2">{children}</li>,
+  };
 
   return (
     <div className="min-h-screen bg-white notebook-background">
@@ -64,10 +39,15 @@ export default function SolutionPage() {
         </button>
         <main className="bg-white bg-opacity-90 p-6 sm:p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl mb-8 text-gray-800 font-bold">Solution</h1>
-          <div 
-            className="solution-content prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: processedSolution }}
-          />
+          <div className="solution-content prose prose-lg max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={components}
+            >
+              {solution}
+            </ReactMarkdown>
+          </div>
         </main>
       </div>
       <style jsx global>{`
@@ -77,22 +57,10 @@ export default function SolutionPage() {
             linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
           background-size: 20px 20px;
         }
-        .solution-content h3 {
-          font-size: 1.5rem;
-          font-weight: bold;
-          margin-top: 1.5rem;
-          margin-bottom: 1rem;
-        }
-        .solution-content p {
-          margin-bottom: 1rem;
-        }
         .solution-content .katex-display {
           margin: 1rem 0;
           overflow-x: auto;
           overflow-y: hidden;
-        }
-        .solution-content ul, .solution-content ol {
-          margin-bottom: 1rem;
         }
       `}</style>
     </div>
