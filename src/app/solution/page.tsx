@@ -34,22 +34,19 @@ const MathComponent: React.FC<{ math: string, display?: boolean }> = ({ math, di
 
   useEffect(() => {
     try {
-      if (display) {
-        // This is just a test, not actually rendering
-        const _ = <DynamicBlockMath math={math} />;
-      } else {
-        // This is just a test, not actually rendering
-        const _ = <DynamicInlineMath math={math} />;
+      // Instead of creating unused variables, we'll just check if the components exist
+      if (!DynamicBlockMath || !DynamicInlineMath) {
+        throw new Error('KaTeX components not available');
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error('Error rendering with KaTeX:', error.message);
+        console.error('Error with KaTeX components:', error.message);
       } else {
-        console.error('Unknown error rendering with KaTeX');
+        console.error('Unknown error with KaTeX components');
       }
       setUseKaTeX(false);
     }
-  }, [math, display]);
+  }, []);
 
   if (useKaTeX) {
     return display ? <DynamicBlockMath math={math} /> : <DynamicInlineMath math={math} />;
