@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['react-webcam'],
   images: {
-    domains: ['localhost'],  // Add any other domains you need for Image component
+    domains: ['localhost', 'vercel.app'],
   },
 }
 
