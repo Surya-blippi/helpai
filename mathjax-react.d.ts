@@ -1,5 +1,5 @@
 declare module 'mathjax-react' {
-    import React from 'react';
+    import { ReactNode } from 'react';
   
     export interface MathJaxProps {
       children: string;
@@ -28,7 +28,7 @@ declare module 'mathjax-react' {
       maxMacros?: number;
       maxBuffer?: number;
       baseURL?: string;
-      formatError?: (jax: any, err: Error) => string;
+      formatError?: (jax: unknown, err: Error) => string;
     }
   
     interface MathJaxSvgConfig {
@@ -56,7 +56,7 @@ declare module 'mathjax-react' {
     }
   
     export interface MathJaxContextProps {
-      children: React.ReactNode;
+      children: ReactNode;
       config?: MathJaxConfig;
       version?: string;
       onStartup?: (mathJax: unknown) => void;
