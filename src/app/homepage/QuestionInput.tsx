@@ -1,16 +1,12 @@
+// src/app/homepage/QuestionInput.tsx
+
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { CameraIcon, PhotoIcon } from '@heroicons/react/24/outline';
-
-// Adjusted dynamic import to correctly import the default export
-const Webcam = dynamic(
-  () => import('react-webcam').then((mod) => mod.default),
-  { ssr: false }
-);
-
-// Import the WebcamProps type for proper typing
 import type { WebcamProps } from 'react-webcam';
+
+const Webcam = dynamic(() => import('react-webcam'), { ssr: false });
 
 interface QuestionInputProps {
   question: string;
@@ -28,7 +24,7 @@ const QuestionInput: React.FC<QuestionInputProps> = ({
   setInputType,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const webcamRef = useRef<Webcam>(null);
+  const webcamRef = useRef<React.ElementRef<typeof Webcam>>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
@@ -50,17 +46,15 @@ const QuestionInput: React.FC<QuestionInputProps> = ({
     }
   };
 
-  const handleCameraCapture = useCallback(() => {
+  const handleCameraCapture = useCallback(async () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
-        fetch(imageSrc)
-          .then((res) => res.blob())
-          .then((blob) => {
-            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
-            setImage(file);
-            setQuestion('');
-          });
+        const response = await fetch(imageSrc);
+        const blob = await response.blob();
+        const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+        setImage(file);
+        setQuestion('');
         setShowCamera(false);
       }
     }
