@@ -20,7 +20,6 @@ export default function SolutionPage() {
     setSolution(decodeURIComponent(solutionParam));
   }, []);
 
-  // Define the components with proper typing
   const components: { [key: string]: ComponentType } = {
     h3: ({ children }) => <h3 className="text-xl font-bold mt-6 mb-3">{children}</h3>,
     p: ({ children }) => <p className="mb-4">{children}</p>,
@@ -50,19 +49,6 @@ export default function SolutionPage() {
           </div>
         </main>
       </div>
-      <style jsx global>{`
-        .notebook-background {
-          background-image:
-            linear-gradient(#e5e5e5 1px, transparent 1px),
-            linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
-          background-size: 20px 20px;
-        }
-        .solution-content .katex-display {
-          margin: 1rem 0;
-          overflow-x: auto;
-          overflow-y: hidden;
-        }
-      `}</style>
     </div>
   );
 }
