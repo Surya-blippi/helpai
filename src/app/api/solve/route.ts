@@ -55,7 +55,7 @@ export async function POST(request: Request) {
               ]
             }
           ],
-          max_tokens: 300
+          max_tokens: 1000
         }),
         timeoutPromise
       ]) as ChatCompletion;
