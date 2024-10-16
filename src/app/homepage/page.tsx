@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import QuestionInput from './QuestionInput';
+import SolutionRenderer from './SolutionRenderer';
 
 export default function Homepage() {
   const [question, setQuestion] = useState('');
@@ -97,7 +98,7 @@ export default function Homepage() {
                 {solution && (
                   <div className="mt-4 p-4 bg-gray-100 rounded-md">
                     <h3 className="text-lg font-semibold mb-2">Solution:</h3>
-                    <p className="whitespace-pre-wrap">{solution}</p>
+                    <SolutionRenderer solution={solution} />
                   </div>
                 )}
               </div>
