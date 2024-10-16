@@ -4,12 +4,12 @@ import React from 'react';
 import Latex from 'react-latex-next';
 import 'katex/dist/katex.min.css';
 
-
 interface SolutionRendererProps {
   solution: string;
 }
 
 const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
+  // Function to split the solution into text and math parts
   const renderLatex = (text: string) => {
     const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/);
     return parts.map((part, index) => {
@@ -20,6 +20,7 @@ const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
     });
   };
 
+  // Function to parse and render the solution
   const renderSolution = () => {
     const sections = solution.split(/\n(?=Step \d+:|Solution:|Final Answer:)/);
     return sections.map((section, index) => {
@@ -54,7 +55,7 @@ const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
   };
 
   return (
-    <div className="solution-container p-6 bg-white rounded-lg shadow-md">
+    <div className="solution-container p-6 bg-white rounded-lg shadow-md solution-content">
       {renderSolution()}
     </div>
   );
