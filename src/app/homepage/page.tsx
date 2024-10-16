@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import QuestionInput from './QuestionInput';
 import SolutionRenderer from './SolutionRenderer';
 
