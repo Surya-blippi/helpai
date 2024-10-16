@@ -52,7 +52,7 @@ export async function POST(request: Request) {
               ]
             }
           ],
-          max_tokens: 500,
+          max_tokens: 1000,
           stream: true,
         });
       } else {
