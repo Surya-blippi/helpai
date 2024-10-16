@@ -18,6 +18,7 @@
     "react-dom": "^18",
     "react-error-boundary": "^4.0.13",
     "react-firebase-hooks": "^5.1.1",
+    "react-latex-next": "^3.0.0",
     "react-markdown": "^8.0.7",
     "rehype-katex": "^6.0.3",
     "remark-math": "^5.1.1"

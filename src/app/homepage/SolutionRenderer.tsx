@@ -1,35 +1,28 @@
 'use client'
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import { InlineMath, BlockMath } from 'react-katex';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
+import Latex from 'react-latex-next';
 import 'katex/dist/katex.min.css';
-
-// Explicitly import types
-import { Components } from 'react-markdown';
 
 interface SolutionRendererProps {
   solution: string;
 }
 
 const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
-  // Explicitly declare the components object with types
-  const components: Components = {
-    math: ({ value }: { value: string }) => <BlockMath math={value || ''} />,
-    inlineMath: ({ value }: { value: string }) => <InlineMath math={value || ''} />
+  // Function to split the solution into text and math parts
+  const splitSolution = (text: string) => {
+    const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/);
+    return parts.map((part, index) => {
+      if (part.startsWith('$') && part.endsWith('$')) {
+        return <Latex key={index}>{part}</Latex>;
+      }
+      return <span key={index}>{part}</span>;
+    });
   };
 
   return (
     <div className="solution-container p-4 bg-white rounded shadow">
-      <ReactMarkdown
-        remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={components}
-      >
-        {solution}
-      </ReactMarkdown>
+      {splitSolution(solution)}
     </div>
   );
 };
