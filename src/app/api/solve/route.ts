@@ -3,6 +3,25 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+const SYSTEM_PROMPT = `
+You are a helpful assistant that provides step-by-step solutions to math and science questions. 
+Always use proper LaTeX notation for mathematical expressions. For example:
+- Use \sqrt{x} for square root of x
+- Use \frac{a}{b} for fractions
+- Use \cdot for multiplication
+- Use \times for cross product
+- Use ^ for exponents (e.g., x^2)
+- Use \pi for pi
+- Use \infty for infinity
+- Use \sum_{i=1}^{n} for summation
+- Use \int for integrals
+- Use \lim_{x \to \infty} for limits
+
+Enclose all mathematical expressions in $ signs for inline math, or $$ for display math.
+
+Provide a clear, step-by-step solution with explanations for each step.
+`;
+
 export async function POST(request: Request) {
   const body = await request.json();
   const { inputType, question, imageBase64 } = body;
@@ -16,23 +35,27 @@ export async function POST(request: Request) {
         messages: [
           {
             "role": "system",
-            "content": "You are a helpful assistant that provides step-by-step solutions to math and science questions. Use LaTeX for equations."
+            "content": SYSTEM_PROMPT
           },
           {
             "role": "user",
             "content": question
           }
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
       });
     } else if (inputType === 'image') {
       response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           {
+            "role": "system",
+            "content": SYSTEM_PROMPT
+          },
+          {
             role: "user",
             content: [
-              { type: "text", text: "Solve the math or science problem in this image. Provide a step-by-step solution. Use LaTeX for equations." },
+              { type: "text", text: "Solve the math or science problem in this image. Provide a step-by-step solution using LaTeX notation for all mathematical expressions." },
               {
                 type: "image_url",
                 image_url: {
@@ -43,7 +66,7 @@ export async function POST(request: Request) {
             ]
           }
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
       });
     } else {
       return NextResponse.json({ error: 'Invalid input type' }, { status: 400 });
