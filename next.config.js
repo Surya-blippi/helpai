@@ -4,9 +4,6 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['openai'],
   },
-  serverRuntimeConfig: {
-    timeoutSeconds: 60, // Increase this value as needed
-  },
 };
 
 module.exports = nextConfig;
