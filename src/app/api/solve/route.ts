@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
       if (inputType === 'text') {
         stream = await openai.chat.completions.create({
-          model: "gpt-4",
+          model: "gpt-4o-mini",
           messages: [
             {
               "role": "system",
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         });
       } else if (inputType === 'image') {
         stream = await openai.chat.completions.create({
-          model: "gpt-4-vision-preview",
+          model: "gpt-4o-mini",
           messages: [
             {
               role: "user",
