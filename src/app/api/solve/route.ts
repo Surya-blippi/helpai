@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { inputType, question, imageBase64 } = body;
 
-    let response;
+    let response: OpenAI.Chat.Completions.ChatCompletion;
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('OpenAI API request timed out')), 25000)
     );
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
           ]
         }),
         timeoutPromise
-      ]);
+      ]) as OpenAI.Chat.Completions.ChatCompletion;
     } else if (inputType === 'image') {
       response = await Promise.race([
         openai.chat.completions.create({
@@ -52,12 +52,12 @@ export async function POST(request: Request) {
           max_tokens: 500
         }),
         timeoutPromise
-      ]);
+      ]) as OpenAI.Chat.Completions.ChatCompletion;
     } else {
       return NextResponse.json({ error: 'Invalid input type' }, { status: 400 });
     }
 
-    if ('choices' in response && response.choices[0].message) {
+    if (response.choices && response.choices.length > 0 && response.choices[0].message) {
       return NextResponse.json({ solution: response.choices[0].message.content });
     } else {
       throw new Error('Unexpected response format from OpenAI API');
