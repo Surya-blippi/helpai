@@ -23,7 +23,8 @@ export default function Homepage() {
         imageBase64 = await fileToBase64(image);
       }
 
-      const response = await fetch('/api/solve', {
+      // First API call to get the initial solution
+      const initialResponse = await fetch('/api/solve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,13 +36,31 @@ export default function Homepage() {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      if (!initialResponse.ok) {
+        const errorData = await initialResponse.json();
+        throw new Error(errorData.error || `HTTP error! status: ${initialResponse.status}`);
       }
 
-      const data = await response.json();
-      setSolution(data.solution);
+      const initialData = await initialResponse.json();
+
+      // Second API call to format the solution
+      const formattingResponse = await fetch('/api/format-solution', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          solution: initialData.solution,
+        }),
+      });
+
+      if (!formattingResponse.ok) {
+        const errorData = await formattingResponse.json();
+        throw new Error(errorData.error || `HTTP error! status: ${formattingResponse.status}`);
+      }
+
+      const formattedData = await formattingResponse.json();
+      setSolution(formattedData.formattedSolution);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       console.error('Error in handleSolve:', err);

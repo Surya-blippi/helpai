@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import Latex from 'react-latex-next';
+import ReactMarkdown from 'react-markdown';
+import RemarkMathPlugin from 'remark-math';
+import RehypeKatexPlugin from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 interface SolutionRendererProps {
@@ -12,56 +14,12 @@ const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate a delay to ensure KaTeX has time to render
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
 
     return () => clearTimeout(timer);
   }, [solution]);
-
-  const renderLatex = (text: string) => {
-    const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/);
-    return parts.map((part, index) => {
-      if (part.startsWith('$') && part.endsWith('$')) {
-        return <Latex key={index}>{part}</Latex>;
-      }
-      return <span key={index}>{part}</span>;
-    });
-  };
-
-  const renderSolution = () => {
-    const sections = solution.split(/\n(?=Step \d+:|Solution:|Final Answer:)/);
-    return sections.map((section, index) => {
-      const [title, ...content] = section.split('\n');
-      const sectionContent = content.join('\n').trim();
-
-      if (title.startsWith('Step')) {
-        return (
-          <div key={index} className="mb-6">
-            <h3 className="text-lg font-semibold text-indigo-600 mb-2">{title}</h3>
-            <div className="pl-4 text-gray-700">{renderLatex(sectionContent)}</div>
-          </div>
-        );
-      } else if (title === 'Solution:') {
-        return (
-          <div key={index} className="mb-6">
-            <h2 className="text-xl font-bold text-indigo-800 mb-3">{title}</h2>
-            <div className="text-gray-700">{renderLatex(sectionContent)}</div>
-          </div>
-        );
-      } else if (title === 'Final Answer:') {
-        return (
-          <div key={index} className="mt-6 p-4 bg-green-100 rounded-lg border border-green-300">
-            <h3 className="text-lg font-semibold text-green-800 mb-2">{title}</h3>
-            <div className="text-gray-800">{renderLatex(sectionContent)}</div>
-          </div>
-        );
-      } else {
-        return <div key={index} className="mb-4 text-gray-700">{renderLatex(section)}</div>;
-      }
-    });
-  };
 
   if (isLoading) {
     return (
@@ -73,7 +31,22 @@ const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
 
   return (
     <div className="solution-container p-6 bg-white rounded-lg shadow-md solution-content">
-      {renderSolution()}
+      <ReactMarkdown
+        remarkPlugins={[RemarkMathPlugin]}
+        rehypePlugins={[RehypeKatexPlugin]}
+        components={{
+          h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4" {...props} />,
+          h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3" {...props} />,
+          h3: ({node, ...props}) => <h3 className="text-lg font-medium mb-2" {...props} />,
+          p: ({node, ...props}) => <p className="mb-4" {...props} />,
+          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4" {...props} />,
+          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4" {...props} />,
+          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-4" {...props} />,
+        }}
+      >
+        {solution}
+      </ReactMarkdown>
     </div>
   );
 };
