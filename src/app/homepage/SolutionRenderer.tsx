@@ -35,14 +35,14 @@ const SolutionRenderer: React.FC<SolutionRendererProps> = ({ solution }) => {
         remarkPlugins={[RemarkMathPlugin]}
         rehypePlugins={[RehypeKatexPlugin]}
         components={{
-          h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4" {...props} />,
-          h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3" {...props} />,
-          h3: ({node, ...props}) => <h3 className="text-lg font-medium mb-2" {...props} />,
-          p: ({node, ...props}) => <p className="mb-4" {...props} />,
-          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4" {...props} />,
-          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4" {...props} />,
-          li: ({node, ...props}) => <li className="mb-1" {...props} />,
-          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-4" {...props} />,
+          h1: ({children}) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
+          h2: ({children}) => <h2 className="text-xl font-semibold mb-3">{children}</h2>,
+          h3: ({children}) => <h3 className="text-lg font-medium mb-2">{children}</h3>,
+          p: ({children}) => <p className="mb-4">{children}</p>,
+          ul: ({children}) => <ul className="list-disc list-inside mb-4">{children}</ul>,
+          ol: ({children}) => <ol className="list-decimal list-inside mb-4">{children}</ol>,
+          li: ({children}) => <li className="mb-1">{children}</li>,
+          blockquote: ({children}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-4">{children}</blockquote>,
         }}
       >
         {solution}
