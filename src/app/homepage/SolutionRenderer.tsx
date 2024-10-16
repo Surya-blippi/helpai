@@ -4,6 +4,7 @@ import React from 'react';
 import Latex from 'react-latex-next';
 import 'katex/dist/katex.min.css';
 
+
 interface SolutionRendererProps {
   solution: string;
 }
