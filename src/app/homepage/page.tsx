@@ -39,29 +39,11 @@ export default function Homepage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Failed to get response reader');
-      }
-
-      let accumulatedSolution = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              accumulatedSolution += data.chunk;
-              setSolution(accumulatedSolution);
-            } catch (e) {
-              console.error('Error parsing chunk:', e);
-            }
-          }
-        }
+      const data = await response.json();
+      if (data.solution) {
+        setSolution(data.solution);
+      } else {
+        throw new Error('No solution received from the server');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
