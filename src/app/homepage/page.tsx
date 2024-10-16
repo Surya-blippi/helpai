@@ -96,10 +96,7 @@ export default function Homepage() {
                   </div>
                 )}
                 {solution && (
-                  <div className="mt-4 p-4 bg-gray-100 rounded-md">
-                    <h3 className="text-lg font-semibold mb-2">Solution:</h3>
-                    <SolutionRenderer solution={solution} />
-                  </div>
+                  <SolutionRenderer solution={solution} />
                 )}
               </div>
             </div>
