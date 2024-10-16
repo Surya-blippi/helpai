@@ -23,7 +23,7 @@ export default function Homepage() {
         imageBase64 = await fileToBase64(image);
       }
 
-      const initialResponse = await fetch('/api/solve', {
+      const response = await fetch('/api/solve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,30 +35,34 @@ export default function Homepage() {
         }),
       });
 
-      if (!initialResponse.ok) {
-        const errorData = await initialResponse.text();
-        throw new Error(errorData || `HTTP error! status: ${initialResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const initialData = await initialResponse.json();
-
-      const formattingResponse = await fetch('/api/format-solution', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          solution: initialData.solution,
-        }),
-      });
-
-      if (!formattingResponse.ok) {
-        const errorData = await formattingResponse.text();
-        throw new Error(errorData || `HTTP error! status: ${formattingResponse.status}`);
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to get response reader');
       }
 
-      const formattedData = await formattingResponse.json();
-      setSolution(formattedData.formattedSolution);
+      let accumulatedSolution = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              accumulatedSolution += data.chunk;
+              setSolution(accumulatedSolution);
+            } catch (e) {
+              console.error('Error parsing chunk:', e);
+            }
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       console.error('Error in handleSolve:', err);

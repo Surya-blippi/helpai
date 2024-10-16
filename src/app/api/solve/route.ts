@@ -3,28 +3,25 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-function handleApiError(error: unknown) {
-  console.error('API Error:', error);
-  if (error instanceof Error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
-}
-
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { inputType, question, imageBase64 } = body;
+  const body = await request.json();
+  const { inputType, question, imageBase64 } = body;
 
-    let response: OpenAI.Chat.Completions.ChatCompletion;
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('OpenAI API request timed out')), 50000)
-    );
+  const stream = new TransformStream();
+  const writer = stream.writable.getWriter();
+  const encoder = new TextEncoder();
 
-    if (inputType === 'text') {
-      response = await Promise.race([
-        openai.chat.completions.create({
-          model: "gpt-4o",
+  const writeChunk = async (chunk: string) => {
+    await writer.write(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
+  };
+
+  (async () => {
+    try {
+      let response: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+
+      if (inputType === 'text') {
+        response = await openai.chat.completions.create({
+          model: "gpt-4",
           messages: [
             {
               "role": "system",
@@ -34,14 +31,12 @@ export async function POST(request: Request) {
               "role": "user",
               "content": question
             }
-          ]
-        }),
-        timeoutPromise
-      ]) as OpenAI.Chat.Completions.ChatCompletion;
-    } else if (inputType === 'image') {
-      response = await Promise.race([
-        openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          ],
+          stream: true,
+        });
+      } else if (inputType === 'image') {
+        response = await openai.chat.completions.create({
+          model: "gpt-4-vision-preview",
           messages: [
             {
               role: "user",
@@ -51,26 +46,39 @@ export async function POST(request: Request) {
                   type: "image_url",
                   image_url: {
                     "url": `data:image/jpeg;base64,${imageBase64}`,
-                    "detail": "low"
+                    "detail": "high"
                   }
                 }
               ]
             }
           ],
-          max_tokens: 500
-        }),
-        timeoutPromise
-      ]) as OpenAI.Chat.Completions.ChatCompletion;
-    } else {
-      return NextResponse.json({ error: 'Invalid input type' }, { status: 400 });
-    }
+          max_tokens: 500,
+          stream: true,
+        });
+      } else {
+        throw new Error('Invalid input type');
+      }
 
-    if (response.choices && response.choices.length > 0 && response.choices[0].message) {
-      return NextResponse.json({ solution: response.choices[0].message.content });
-    } else {
-      throw new Error('Unexpected response format from OpenAI API');
+      for await (const part of response) {
+        const chunk = part.choices[0]?.delta?.content || '';
+        if (chunk) {
+          await writeChunk(chunk);
+        }
+      }
+
+      await writer.close();
+    } catch (error) {
+      console.error('API Error:', error);
+      await writeChunk(`Error: ${error instanceof Error ? error.message : 'An unexpected error occurred'}`);
+      await writer.close();
     }
-  } catch (error) {
-    return handleApiError(error);
-  }
+  })();
+
+  return new NextResponse(stream.readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }
