@@ -3,6 +3,14 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+function handleApiError(error: unknown) {
+  console.error('API Error:', error);
+  if (error instanceof Error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+}
+
 export async function POST(request: Request) {
   try {
     const { solution } = await request.json();
@@ -22,11 +30,13 @@ export async function POST(request: Request) {
       max_tokens: 1000
     });
 
-    const formattedSolution = response.choices[0].message.content;
-
-    return NextResponse.json({ formattedSolution });
+    if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+      const formattedSolution = response.choices[0].message.content;
+      return NextResponse.json({ formattedSolution });
+    } else {
+      throw new Error('Unexpected response format from OpenAI API');
+    }
   } catch (error) {
-    console.error('Error in format-solution API:', error);
-    return NextResponse.json({ error: 'An error occurred while formatting the solution' }, { status: 500 });
+    return handleApiError(error);
   }
 }

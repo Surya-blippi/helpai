@@ -23,7 +23,6 @@ export default function Homepage() {
         imageBase64 = await fileToBase64(image);
       }
 
-      // First API call to get the initial solution
       const initialResponse = await fetch('/api/solve', {
         method: 'POST',
         headers: {
@@ -37,13 +36,12 @@ export default function Homepage() {
       });
 
       if (!initialResponse.ok) {
-        const errorData = await initialResponse.json();
-        throw new Error(errorData.error || `HTTP error! status: ${initialResponse.status}`);
+        const errorData = await initialResponse.text();
+        throw new Error(errorData || `HTTP error! status: ${initialResponse.status}`);
       }
 
       const initialData = await initialResponse.json();
 
-      // Second API call to format the solution
       const formattingResponse = await fetch('/api/format-solution', {
         method: 'POST',
         headers: {
@@ -55,8 +53,8 @@ export default function Homepage() {
       });
 
       if (!formattingResponse.ok) {
-        const errorData = await formattingResponse.json();
-        throw new Error(errorData.error || `HTTP error! status: ${formattingResponse.status}`);
+        const errorData = await formattingResponse.text();
+        throw new Error(errorData || `HTTP error! status: ${formattingResponse.status}`);
       }
 
       const formattedData = await formattingResponse.json();

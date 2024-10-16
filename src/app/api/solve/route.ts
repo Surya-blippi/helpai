@@ -3,6 +3,14 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+function handleApiError(error: unknown) {
+  console.error('API Error:', error);
+  if (error instanceof Error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -10,7 +18,7 @@ export async function POST(request: Request) {
 
     let response: OpenAI.Chat.Completions.ChatCompletion;
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('OpenAI API request timed out')), 25000)
+      setTimeout(() => reject(new Error('OpenAI API request timed out')), 50000)
     );
 
     if (inputType === 'text') {
@@ -63,10 +71,6 @@ export async function POST(request: Request) {
       throw new Error('Unexpected response format from OpenAI API');
     }
   } catch (error) {
-    console.error('Error in OpenAI API:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+    return handleApiError(error);
   }
 }
